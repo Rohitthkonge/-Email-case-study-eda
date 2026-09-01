@@ -37,12 +37,15 @@ pip install pandas numpy matplotlib scipy wordcloud pytz
 ## How each graph is plotted
 
 ### 1. Sent vs. Received — time of day across years (scatter)
+![Sent vs received scatter](images/1_sent_vs_received.png)
+*Sample output on synthetic data — your real inbox will show your own patterns.*
 - X-axis = `year` (fractional, e.g. `2025.45`), Y-axis = `timeofday` (hour as a decimal, e.g. `14.5` = 2:30 PM)
 - `df.plot.scatter` puts one dot per email at (year sent, time of day sent)
 - Two side-by-side subplots — one filtered to `sent`, one to `inbox` — so you can visually compare when you send vs. when you receive
 - Vertical "bands" mean you (or people emailing you) tend to be active at consistent hours; a dense bottom-right cluster means recent months are busier
 
 ### 2. Average emails per day / per hour (combined panel)
+![Combined panel](images/2_avg_per_day_hour_panel.png)
 Built with `matplotlib.gridspec` to place three related charts sharing axes:
 - **Top strip** — histogram of `year`, weighted so each bar reads as "emails per day" instead of a raw count. The trick: `weights = 1 / (dt * 365.25)` per email, so summing bars gives a rate, not a total
 - **Center scatter** — same year vs. time-of-day scatter as above, but sharing its X-axis with the top strip and Y-axis with the side strip, so all three stay aligned when you zoom/pan
@@ -50,15 +53,18 @@ Built with `matplotlib.gridspec` to place three related charts sharing axes:
 - This is the same layout style used in astronomy "light curve" plots — one main scatter with marginal histograms
 
 ### 3. Emails per day of week (bar chart)
+![Emails per day of week](images/3_emails_per_dayofweek.png)
 - `df["dayofweek"].value_counts()` just counts rows per day name (`Monday`, `Tuesday`, …)
 - Plotted directly with `.plot(kind="bar")` — no weighting, just raw totals over the whole date range
 
 ### 4. Incoming vs. outgoing fraction per day of week
+![Incoming vs outgoing](images/4_incoming_vs_outgoing.png)
 - `pd.crosstab(dayofweek, label, normalize="columns")` — counts sent vs. inbox emails per day, then normalizes **each column** to sum to 1
 - Normalizing matters because you likely send far fewer emails than you receive; comparing raw counts would make "sent" bars invisible. Normalizing shows *the shape* of each pattern (e.g. "Wednesday is your busiest sending day") on the same scale
 - Grouped bar chart, two bars per day (Outgoing vs Incoming)
 
 ### 5. Average emails per hour, per day of week (line chart)
+![Hourly by weekday](images/5_hourly_by_weekday.png)
 - For each day-of-week group, `plot_number_perhour_per_year()` builds a weighted histogram of `timeofday` (same rate-normalization idea as chart #2), then:
   - Takes the bin centers and heights
   - Smooths them with a Gaussian filter (`scipy.ndimage.gaussian_filter`) to remove jagged histogram edges
@@ -67,6 +73,7 @@ Built with `matplotlib.gridspec` to place three related charts sharing axes:
 - X-axis relabeled from raw hour numbers (0–24) to 12-hour clock labels (`12 AM`, `03 AM`, …)
 
 ### 6. Word cloud of email subjects
+![Word cloud](images/6_wordcloud.png)
 - All subject lines are joined into one long string
 - `WordCloud` tokenizes that string, removes stopwords (English filler words + custom ones like `Re`, `Fwd`) and common newsletter senders, then sizes each remaining word by how often it appears
 - `collocations=False` stops it from pairing up common two-word phrases, so word size reflects individual word frequency only
